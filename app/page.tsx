@@ -1,101 +1,333 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import React, { useState, useRef } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  PlusIcon,
+  TrashIcon,
+  PrinterIcon,
+  ReceiptText,
+  FlaskConical,
+  Share2,
+} from "lucide-react";
+import { useReactToPrint } from "react-to-print";
+import PrintableInvoice from "./printable-invoice";
+
+interface InvoiceItem {
+  description: string;
+  quantity: number;
+  unitPrice: number;
+}
+
+const InvoiceGenerator: React.FC = () => {
+  const [logo, setLogo] = useState<string | null>(null);
+  const [companyDetails, setCompanyDetails] = useState({
+    name: "",
+    address: "",
+    phone: "",
+    email: "",
+  });
+  const [billingDetails, setBillingDetails] = useState({
+    name: "",
+    address: "",
+    phone: "",
+    email: "",
+  });
+  const [items, setItems] = useState<InvoiceItem[]>([
+    { description: "", quantity: 0, unitPrice: 0 },
+  ]);
+  const [greeting, setGreeting] = useState("Thank you for your business!");
+  const [invoiceNumber, setInvoiceNumber] = useState("");
+  const [invoiceDate, setInvoiceDate] = useState("");
+  const invoiceRef = useRef<HTMLDivElement>(null);
+
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setLogo(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleCompanyDetailsChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    setCompanyDetails({ ...companyDetails, [e.target.name]: e.target.value });
+  };
+
+  const handleBillingDetailsChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    setBillingDetails({ ...billingDetails, [e.target.name]: e.target.value });
+  };
+
+  const handleItemChange = (
+    index: number,
+    field: keyof InvoiceItem,
+    value: string | number
+  ) => {
+    const newItems = [...items];
+    newItems[index] = {
+      ...newItems[index],
+      [field]: field === "description" ? (value as string) : Number(value),
+    };
+    setItems(newItems);
+  };
+
+  const addItem = () => {
+    setItems([...items, { description: "", quantity: 0, unitPrice: 0 }]);
+  };
+
+  const removeItem = (index: number) => {
+    setItems(items.filter((_, i) => i !== index));
+  };
+
+  const calculateTotal = () => {
+    return items.reduce(
+      (total, item) => total + item.quantity * item.unitPrice,
+      0
+    );
+  };
+
+  const handlePrint = useReactToPrint({
+    content: () => invoiceRef.current,
+  });
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div className="min-h-screen bg-gray-100">
+      <nav className="sticky top-0 z-10 bg-white bg-opacity-70 backdrop-blur-md shadow-md">
+        <div className="container mx-auto px-4 py-3 flex justify-between items-center">
+          <div className="flex items-center space-x-2">
+            <ReceiptText className="h-6 w-6 text-primary" />
+            <span className="text-lg font-semibold">Invoice Generator</span>
+          </div>
+          <div className="flex items-center space-x-4">
+            <a
+              href="#"
+              className="flex items-center space-x-1 text-primary hover:text-primary-dark"
+            >
+              <FlaskConical className="h-5 w-5" />
+              <span>Lab</span>
+            </a>
+            <a
+              href="https://my-invoice-generator.app"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center space-x-1 text-primary hover:text-primary-dark"
+            >
+              <Share2 className="h-5 w-5" />
+              <span>Share</span>
+            </a>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </nav>
+
+      <div className="container mx-auto p-4 space-y-8">
+        <div className="space-y-8 bg-white p-8 rounded-lg shadow-lg">
+          <div className="flex justify-between items-start">
+            <div className="space-y-4">
+              <Label
+                htmlFor="logo-upload"
+                className="cursor-pointer inline-block bg-primary text-primary-foreground px-4 py-2 rounded-md"
+              >
+                Upload Logo
+              </Label>
+              <Input
+                id="logo-upload"
+                type="file"
+                accept="image/*"
+                onChange={handleLogoUpload}
+                className="hidden"
+              />
+              {logo && (
+                <img
+                  src={logo}
+                  alt="Company Logo"
+                  className="max-w-xs max-h-24 object-contain"
+                />
+              )}
+            </div>
+            <div className="space-y-2">
+              <Input
+                placeholder="Invoice Number"
+                className="w-48"
+                value={invoiceNumber}
+                onChange={(e) => setInvoiceNumber(e.target.value)}
+              />
+              <Input
+                type="date"
+                className="w-48"
+                value={invoiceDate}
+                onChange={(e) => setInvoiceDate(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-8">
+            <div className="space-y-4">
+              <h2 className="text-xl font-bold">Company Details</h2>
+              <Input
+                name="name"
+                placeholder="Company Name"
+                value={companyDetails.name}
+                onChange={handleCompanyDetailsChange}
+              />
+              <Textarea
+                name="address"
+                placeholder="Address"
+                value={companyDetails.address}
+                onChange={handleCompanyDetailsChange}
+              />
+              <Input
+                name="phone"
+                placeholder="Phone"
+                value={companyDetails.phone}
+                onChange={handleCompanyDetailsChange}
+              />
+              <Input
+                name="email"
+                placeholder="Email"
+                value={companyDetails.email}
+                onChange={handleCompanyDetailsChange}
+              />
+            </div>
+            <div className="space-y-4">
+              <h2 className="text-xl font-bold">Bill To</h2>
+              <Input
+                name="name"
+                placeholder="Client Name"
+                value={billingDetails.name}
+                onChange={handleBillingDetailsChange}
+              />
+              <Textarea
+                name="address"
+                placeholder="Address"
+                value={billingDetails.address}
+                onChange={handleBillingDetailsChange}
+              />
+              <Input
+                name="phone"
+                placeholder="Phone"
+                value={billingDetails.phone}
+                onChange={handleBillingDetailsChange}
+              />
+              <Input
+                name="email"
+                placeholder="Email"
+                value={billingDetails.email}
+                onChange={handleBillingDetailsChange}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <h2 className="text-xl font-bold">Invoice Items</h2>
+            {items.map((item, index) => (
+              <div key={index} className="flex space-x-4 items-end">
+                <div className="flex-grow">
+                  <Label htmlFor={`description-${index}`}>Description</Label>
+                  <Input
+                    id={`description-${index}`}
+                    value={item.description}
+                    onChange={(e) =>
+                      handleItemChange(index, "description", e.target.value)
+                    }
+                  />
+                </div>
+                <div className="w-24">
+                  <Label htmlFor={`quantity-${index}`}>Quantity</Label>
+                  <Input
+                    id={`quantity-${index}`}
+                    type="number"
+                    value={item.quantity}
+                    onChange={(e) =>
+                      handleItemChange(index, "quantity", e.target.value)
+                    }
+                  />
+                </div>
+                <div className="w-32">
+                  <Label htmlFor={`unitPrice-${index}`}>Unit Price</Label>
+                  <Input
+                    id={`unitPrice-${index}`}
+                    type="number"
+                    value={item.unitPrice}
+                    onChange={(e) =>
+                      handleItemChange(index, "unitPrice", e.target.value)
+                    }
+                  />
+                </div>
+                <div className="w-32">
+                  <Label>Total</Label>
+                  <div className="h-10 flex items-center">
+                    RM {(item.quantity * item.unitPrice).toFixed(2)}
+                  </div>
+                </div>
+                <Button
+                  variant="destructive"
+                  size="icon"
+                  onClick={() => removeItem(index)}
+                >
+                  <TrashIcon className="h-4 w-4" />
+                </Button>
+              </div>
+            ))}
+            <Button onClick={addItem} className="mt-2">
+              <PlusIcon className="h-4 w-4 mr-2" /> Add Item
+            </Button>
+          </div>
+
+          <div className="flex justify-end space-x-4 items-end">
+            <div className="text-right">
+              <div className="font-bold">Total:</div>
+              <div className="text-2xl font-bold">
+                RM {calculateTotal().toFixed(2)}
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="greeting">Greeting</Label>
+            <Input
+              id="greeting"
+              value={greeting}
+              onChange={(e) => setGreeting(e.target.value)}
+              placeholder="Enter a greeting message"
+            />
+          </div>
+        </div>
+
+        <div className="flex justify-center">
+          <Button className="w-full max-w-md" onClick={handlePrint}>
+            <PrinterIcon className="h-4 w-4 mr-2" /> Print Invoice
+          </Button>
+        </div>
+
+        <div className="hidden">
+          <div ref={invoiceRef}>
+            <PrintableInvoice
+              logo={logo}
+              companyDetails={companyDetails}
+              billingDetails={billingDetails}
+              items={items}
+              greeting={greeting}
+              invoiceNumber={invoiceNumber}
+              invoiceDate={invoiceDate}
+            />
+          </div>
+        </div>
+
+        <footer className="text-center text-sm text-gray-500 mt-8">
+          © Safwan Rahimi 2024 All Rights Reserved
+        </footer>
+      </div>
     </div>
   );
-}
+};
+
+export default InvoiceGenerator;
