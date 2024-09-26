@@ -109,14 +109,14 @@ const InvoiceGenerator: React.FC = () => {
           </div>
           <div className="flex items-center space-x-4">
             <a
-              href="#"
+              href="https://safwanrahimi.vercel.app/"
               className="flex items-center space-x-1 text-primary hover:text-primary-dark"
             >
               <FlaskConical className="h-5 w-5" />
-              <span>Lab</span>
+              <span>More Project</span>
             </a>
             <a
-              href="https://my-invoice-generator.app"
+              href="https://einvoice-generator.netlify.app/"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center space-x-1 text-primary hover:text-primary-dark"
