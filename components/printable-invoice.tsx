@@ -50,8 +50,9 @@ const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
           <h1 className="text-3xl font-bold text-gray-800">INVOICE</h1>
         </div>
         <div className="text-right">
-          <p className="font-bold text-gray-600">Invoice #: {invoiceNumber}</p>
-          <p className="text-gray-600">Date: {format(new Date(invoiceDate), 'MMMM dd, yyyy')}</p>
+        <p className="text-gray-600">Date: {
+  invoiceDate ? format(new Date(invoiceDate), 'MMMM dd, yyyy') : 'Invalid date'
+}</p>
         </div>
       </div>
 
@@ -109,7 +110,7 @@ const PrintableInvoice: React.FC<PrintableInvoiceProps> = ({
       </div>
 
       <footer className="mt-8 pt-4 border-t border-gray-300 text-center text-sm text-gray-500">
-        © 2024 All Rights Reserved
+        
       </footer>
     </div>
   )
